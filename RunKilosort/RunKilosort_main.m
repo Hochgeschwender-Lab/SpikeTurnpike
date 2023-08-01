@@ -60,12 +60,12 @@ channelsArg = strcat('c:1:',num2str(n_channels)); % for openNSx call
 %% Get config and channel map files
 % get absolute path to Kilosort2/configFiles, where channel maps are stored
 thisScipt_filepath = fileparts(mfilename('fullpath'));
-idx = strfind(selected_folder,filesep);
-ks_configFiles_dir = fullfile(thisScipt_filepath(1:idx(end-1)), 'external', 'Kilosort2', 'configFiles');
+idx = strfind(thisScipt_filepath,filesep);
+ks_configFiles_dir = fullfile(thisScipt_filepath(1:idx(end)), 'external', 'Kilosort2', 'configFiles');
 clear idx thisScipt_filepath
 
 % prompt user to choose a specific channel map
-chanMapFile = uigetfile(fullfile(ks_configFiles_dir,'*.mat'), 'Select a channel map:', 'Neuronexus32channelmap_kilosortChanMap.mat');
+chanMapFile = uigetfile(ks_configFiles_dir, 'Select a channel map (.mat):', fullfile(ks_configFiles_dir,'Neuronexus32channelmap_kilosortChanMap.mat'));
 %chanMapFile = 'Neuronexus32channelmap_kilosortChanMap.mat';
 
 %% Build ops struct for Kilosort
@@ -93,8 +93,10 @@ for ii = 1:numGroups
 
         %% If SUA folder does not already exist, create it and proceed
         SUA_Directory = fullfile(recDir,"SUA");
-        if ~exist(SUA_Directory,'dir')
-            mkdir(SUA_Directory); 
+        if ~isfile(fullfile(SUA_Directory,'params.py'))
+            if ~exist(SUA_Directory,'dir')
+                mkdir(SUA_Directory);
+            end
 
             %% Open NSx file and write data to temp.bin
             NSx_file = dir(fullfile(recDir,'*.ns6'));
@@ -128,9 +130,12 @@ for ii = 1:numGroups
             rez                = preprocessDataSub(ops);
             rez                = datashift2(rez, 1);
             
-            [rez, st3, tF]     = extract_spikes(rez);
+            [rez1, st3, tF]     = extract_spikes(rez);
             
-            rez                = template_learning(rez, tF, st3);
+            rez                = template_learning(rez1, tF, st3);
+            rez_save = rez1;
+            tF_save = tF;
+            st3_save = st3;
             
             [rez, st3, tF]     = trackAndSort(rez);
             
