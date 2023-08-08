@@ -17,9 +17,11 @@ groupNames = fieldnames(all_data);
 
 FRsVec = []; % vector with row for each unit
 groupsVec = {};
-trialTagsVec = {}; % numeric trial tag, not label
+trialTagsVec = {};
 cellTypesVec = {};
+cellTypesVec2 = {};
 responsivityVec = {};
+layerVec = {};
 
 for groupNum = 1:length(groupNames)
     groupName = groupNames{groupNum};
@@ -34,8 +36,10 @@ for groupNum = 1:length(groupNames)
             cellID = cellIDs{cellID_num};
 
             IsSingleUnit = all_data.(groupName).(mouseName).(cellID).IsSingleUnit;
+            ISI_violations_percent = all_data.(groupName).(mouseName).(cellID).ISI_violations_percent;
             
-            if (excludeMUA && IsSingleUnit) || ~excludeMUA
+            %if (excludeMUA && IsSingleUnit) || ~excludeMUA
+            if (excludeMUA && (ISI_violations_percent <= 1)) || ~excludeMUA
                 for trialTagInd = 1:length(trialTagsLabels)
                     
                     if strcmp(FR_type,'binned')
@@ -48,18 +52,26 @@ for groupNum = 1:length(groupNames)
                         FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).FanoFactor_stim(trialTagInd,1);
                     end
     
+                    cell_type = all_data.(groupName).(mouseName).(cellID).Cell_Type;
+
                     trialTagsVec{end+1,1} = trialTagsLabels{trialTagInd};
-                    cellTypesVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).Cell_Type;
+                    cellTypesVec{end+1,1} = cell_type;
                     groupsVec{end+1,1} = userGroupName;
+                    layerVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).LaminarLabel;
     
                     responsivityNum = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
                     if responsivityNum == 1
-                        responsivityVec{end+1,1} = '+';
+                        responsivityLabel = '+';
+                        responsivityVec{end+1,1} = responsivityLabel;
                     elseif responsivityNum == 0
-                        responsivityVec{end+1,1} = 'NR';
+                        responsivityLabel = 'nr';
+                        responsivityVec{end+1,1} = responsivityLabel;
                     else
-                        responsivityVec{end+1,1} = '-';
+                        responsivityLabel = '-';
+                        responsivityVec{end+1,1} = responsivityLabel;
                     end
+
+                    cellTypesVec2{end+1,1} = strcat(responsivityLabel,cell_type);
                     
                 end
             end
@@ -73,7 +85,7 @@ cell_types = unique(cellTypesVec);
 figure();
 
 %% Plotting response curves
-g = gramm('x',trialTagsVec, 'y',FRsVec, 'color',groupsVec, 'column',responsivityVec, 'row',cellTypesVec);
+g = gramm('x',trialTagsVec, 'y',FRsVec, 'color',groupsVec, 'column',cellTypesVec2, 'row',layerVec);
 g.stat_summary('type','sem', 'geom',{'line','black_errorbar','point'}, 'setylim',true);
 if strcmp(FR_type,'peak')
     g.set_names('x','', 'y','Peak Evoked FR (Hz)', 'Color','', 'Column','', 'Row','');
@@ -82,7 +94,7 @@ elseif strcmp(FR_type,'fano')
 else
     g.set_names('x','', 'y','Firing Rate (Hz)', 'Color','', 'Column','', 'Row','');
 end
-g.set_order_options('x',trialTagsLabels, "color",groupsPlottingOrder);
+g.set_order_options('x',trialTagsLabels, "color",groupsPlottingOrder, 'row',{'SG','L4','IG'});
 g.draw();
 
 %% Generate table of sample sizes
