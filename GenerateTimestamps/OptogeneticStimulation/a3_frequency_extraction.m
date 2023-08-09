@@ -53,7 +53,7 @@ for ii = 1:numGroups
         ns6_file_path = fullfile(recDir, ns6_file_name);
 
         % Get the ns6 file to count frequencies in the analog signal
-        ns6_data = openNSx('read', ns6_file_path, 'nozeropad').Data;
+        ns6_data = openNSx('read', ns6_file_path).Data;
        
         analog_signal_optostim = ns6_data(33, :);
 
