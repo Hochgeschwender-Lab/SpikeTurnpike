@@ -40,6 +40,7 @@ for ii = 1:numGroups
         fprintf('    Loading data for %s recording (%d/%d)\n', this_recording, jj, numRecordings);
 
         recDir = recfoldernames{jj};
+        
         %% Define MUA folder and sub-folders within MUA 
         MUA_Directory = fullfile(recDir,'MUA'); %path of the MUA directory         
         MUA_allData_Directory = fullfile(recDir,'MUA','allData'); %path of the allData directory
@@ -52,8 +53,8 @@ for ii = 1:numGroups
         else
             %make the directory if it does not exsist
 
-            check_if_folder_exists(MUA_allData_Directory); %make the MUA/allData
-            check_if_folder_exists(MUA_figures_Directory); %make the MUA/figures
+            check_if_folder_exists(MUA_allData_Directory); % make the MUA/allData
+            check_if_folder_exists(MUA_figures_Directory); % make the MUA/figures
 
 
             %% Get file with extension ".ns6" and ".nev"  in specified directory of the recording         

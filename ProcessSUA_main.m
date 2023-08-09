@@ -169,33 +169,51 @@ for groupNum = 1:numGroups
         % load the correct channel to get an example trace of the
         % stimulator voltage output (only from the first recording)
         if (groupNum == 1)&&(recNum == 1)&&(timestamps_type == 1) % whisker
-            ns6_file = openNSx(ns6_file_path, 'read', 'c:35', 'uV', 'nozeropad');
+            ns6_file = openNSx(ns6_file_path, 'read', 'c:35', 'uV', 'precision','double');
 
             stim_onsets = timestamp_ms(:, 1)'*30; % in samples % 30kHz sampling rate
             %stim_offsets = timestamp_ms(:, 2)'*30; % in samples % 30kHz sampling rate
             stim_intensity = timestamp_ms(:, 3)';
+
+            stim_onsets_low = stim_onsets(stim_intensity == 2);
+            stim_onset_low = stim_onsets_low(1);
+            StimVoltageTraces_samples(:,1) = ns6_file.Data(stim_onset_low:stim_onset_low+stim_duration_samples)';
+
+            stim_onsets_mid = stim_onsets(stim_intensity == 3);
+            stim_onset_mid = stim_onsets_mid(100);
+            StimVoltageTraces_samples(:,2) = ns6_file.Data(stim_onset_mid:stim_onset_mid+stim_duration_samples)';
             
-            stim_onsets_max = stim_onsets(stim_intensity == max(stim_intensity));
+            stim_onsets_max = stim_onsets(stim_intensity == 4);
+            stim_onset_max = stim_onsets_max(200);
+            StimVoltageTraces_samples(:,3) = ns6_file.Data(stim_onset_max:stim_onset_max+stim_duration_samples)';
 
-            stim_onset = stim_onsets_max(1);
-            startSample = stim_onset - stim_duration_samples;
-            endSample = stim_onset + 2*stim_duration_samples - 1;
+            save(fullfile(projectFolder,'StimVoltageTraces_samples.mat'), 'StimVoltageTraces_samples');
 
-            StimVoltageTrace = ns6_file.Data(startSample:endSample);
-            save(fullfile(projectFolder,'stimulator_voltage_trace.mat'), 'StimVoltageTrace');
-
+            % downsample to milliseconds using median of every 30 samples
+            tt = array2timetable(StimVoltageTraces_samples, 'SampleRate',30000);
+            ttMedian = retime(tt, 'regular', 'median', 'SampleRate',1000);
+            StimVoltageTraces_ms = [ttMedian.StimVoltageTraces_samples1 ttMedian.StimVoltageTraces_samples2 ttMedian.StimVoltageTraces_samples3];
+            save(fullfile(projectFolder,'StimVoltageTraces_ms.mat'), 'StimVoltageTraces_ms');
+            clear tt ttMedian
         elseif (groupNum == 1)&&(recNum == 1)&&(timestamps_type == 2) % LED/opto
-            ns6_file = openNSx(ns6_file_path, 'read', 'c:33', 'uV', 'nozeropad');
+            ns6_file = openNSx(ns6_file_path, 'read', 'c:33', 'uV', 'precision','double');
 
             stim_onsets = timestamp_ms(:, 1)'*30; % in samples % 30kHz sampling rate
 
-            stim_onset = stim_onsets(1);
-            startSample = stim_onset - stim_duration_samples;
-            endSample = stim_onset + 2*stim_duration_samples - 1;
+            stim_onset = stim_onsets(10);
+            % startSample = stim_onset - stim_duration_samples;
+            % endSample = stim_onset + 2*stim_duration_samples - 1;
 
-            StimVoltageTrace = ns6_file.Data(startSample:endSample);
-            save(fullfile(projectFolder,'stimulator_voltage_trace.mat'), 'StimVoltageTrace');
+            %StimVoltageTrace_samples = ns6_file.Data(startSample:endSample)';
+            StimVoltageTrace_samples = ns6_file.Data(stim_onset:stim_onset+stim_duration_samples)';
+            save(fullfile(projectFolder,'StimVoltageTrace_samples.mat'), 'StimVoltageTrace_samples');
 
+            % downsample to milliseconds using median of every 30 samples
+            tt = timetable(StimVoltageTrace_samples, 'SampleRate',30000);
+            ttMedian = retime(tt, 'regular', 'median', 'SampleRate',1000);
+            StimVoltageTrace_ms = ttMedian.StimVoltageTrace_samples;
+            save(fullfile(projectFolder,'StimVoltageTrace_ms.mat'), 'StimVoltageTrace_ms');
+            clear tt ttMedian
         else
             ns6_file = openNSx(ns6_file_path, 'c:1'); % doesn't matter for chem stim
         end
