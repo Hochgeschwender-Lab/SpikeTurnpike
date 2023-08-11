@@ -1,6 +1,6 @@
 function Plot_PSTHs(all_data,relative_time_ms,trialTagsLabels,PSTH_type,excludeMUA)
 %
-% PSTH_type: 'raw' or 'conv'
+% PSTH_type: 'raw', 'conv', or 'snr'
 % excludeMUA: 0 or 1
 
 groupNames = fieldnames(all_data);
@@ -33,15 +33,19 @@ for groupNum = 1:length(groupNames)
                 for trialTagInd = 1:length(trialTagsLabels)
                     if strcmp(PSTH_type, 'raw')
                         all_PSTHs(end+1,:) = all_data.(groupName).(mouseName).(cellID).PSTHs_raw(trialTagInd,:);
-                    else
+                    elseif strcmp(PSTH_type, 'conv')
                         all_PSTHs(end+1,:) = all_data.(groupName).(mouseName).(cellID).PSTHs_conv(trialTagInd,:);
+                    else
+                        this_psth = all_data.(groupName).(mouseName).(cellID).PSTHs_conv(trialTagInd,:);
+                        baseline_mean = mean(this_psth(relative_time_ms<0));
+                        all_PSTHs(end+1,:) = this_psth-baseline_mean;
                     end
                     groupsVec{end+1,1} = groupName;
     
                     cell_type = all_data.(groupName).(mouseName).(cellID).Cell_Type;
                     cellTypesVec{end+1,1} = cell_type;
                     trialTagsVec{end+1,1} = trialTagsLabels{trialTagInd};
-                    layerVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).LaminarLabel;
+%                    layerVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).LaminarLabel;
         
                     responsivityNum = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
                     if responsivityNum == 1
@@ -67,12 +71,13 @@ end
 figure;
 g = gramm('x',relative_time_ms, 'y',all_PSTHs, 'color',groupsVec);
 %g.facet_grid(cellTypesVec, responsivityVec, "scale","free_y");
-g.facet_grid(layerVec, cellTypesVec2, "scale","free_y");
+%g.facet_grid(layerVec, cellTypesVec, "scale","free_y");
+g.facet_grid([], cellTypesVec, "scale","free_y");
 g.fig(trialTagsVec);
 g.stat_summary('type','sem', 'setylim','true');
 %g.geom_line();
 g.set_names('x','Time (ms)', 'y','Instantaneous FR (Hz)', 'Color','', 'Row','', 'Column','');
-g.set_order_options('row',{'SG','L4','IG'});
+%g.set_order_options('row',{'SG','L4','IG'});
 g.draw;
 
 %% TO DO: Print sample sizes as a table (cell type x modulation)

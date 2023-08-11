@@ -5,6 +5,7 @@ function ISI_PDFs_compare(all_data, cell_types)
 groupNames = fieldnames(all_data);
 
 groupsVec = {};
+cellTypesVec = {};
 ISIs = {}; % [units x times]
 x = [];
 ISI_PDFs_X = {};
@@ -12,21 +13,23 @@ ISI_PDFs_X = {};
 for groupNum = 1:length(groupNames)
     groupName = groupNames{groupNum};
 
-    mouseNames = fieldnames(all_data.(groupName));
+    recNames = fieldnames(all_data.(groupName));
 
-    for mouseNum = 1:length(mouseNames)
-        mouseName = mouseNames{mouseNum};
+    for recNum = 1:length(recNames)
+        recName = recNames{recNum};
 
-        cellIDs = fieldnames(all_data.(groupName).(mouseName));
+        cellIDs = fieldnames(all_data.(groupName).(recName));
 
         for cellID_num = 1:length(cellIDs)
             cellID = cellIDs{cellID_num};
 
-            thisCellType = all_data.(groupName).(mouseName).(cellID).Cell_Type;
-            isSingleUnit = all_data.(groupName).(mouseName).(cellID).IsSingleUnit;
-            if any(strcmp(thisCellType, cell_types)) && isSingleUnit
+            thisCellType = all_data.(groupName).(recName).(cellID).Cell_Type;
+            %isSingleUnit = all_data.(groupName).(mouseName).(cellID).IsSingleUnit;
+            ISI_violations_percent = all_data.(groupName).(recName).(cellID).ISI_violations_percent;
+            if any(strcmp(thisCellType, cell_types)) && (ISI_violations_percent < 1)
                 groupsVec{end+1} = groupName;
-                ISI_vec = all_data.(groupName).(mouseName).(cellID).ISI_baseline_vec;
+                cellTypesVec{end+1,1} = thisCellType;
+                ISI_vec = all_data.(groupName).(recName).(cellID).ISI_baseline_vec;
                 ISIs{end+1} = log10(ISI_vec);
                 %pdf_y = all_data.(groupName).(mouseName).(cellID).ISI_pdf_y;
                 %pdf_x = all_data.(groupName).(mouseName).(cellID).ISI_pdf_x;
@@ -49,20 +52,22 @@ figure;
 % g = gramm('x',ISI_PDFs_X, 'y',ISI_PDFs, 'color',groupsVec);
 % g.stat_summary('type','sem');
 
-g = gramm('x',ISIs, 'color',groupsVec);
+g = gramm('x',ISIs, 'color',groupsVec, 'column',cellTypesVec);
 g.stat_density('npoints',1000, 'extra_x',0);
-g.set_names('x','Inter-Spike Interval (ms)', 'Color','');
+g.set_names('x','Inter-Spike Interval (ms)', 'Color','', 'Column','');
 g.draw();
 
-% update x tick labels for log scale
-xticklabels = g.facet_axes_handles.XTickLabel;
-for ii = 1:length(xticklabels)
-    label_ii_log = xticklabels{ii,1};
-    label_ii_lin = num2str(10^str2double(label_ii_log));
-    xticklabels{ii,1} = label_ii_lin;
-end
 %g.axe_property('XTickLabel',xticklabels);
-g.facet_axes_handles.XTickLabel = xticklabels;
+for ii = 1:length(unique(cellTypesVec))
+    % update x tick labels for log scale
+    xticklabels = g.facet_axes_handles(1,ii).XTickLabel;
+    for jj = 1:length(xticklabels)
+        label_jj_log = xticklabels{jj,1};
+        label_jj_lin = num2str(10^str2double(label_jj_log));
+        xticklabels{jj,1} = label_jj_lin;
+    end
+    g.facet_axes_handles(1,ii).XTickLabel = xticklabels;
+end
 
 end
 

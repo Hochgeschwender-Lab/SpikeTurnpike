@@ -28,8 +28,9 @@ for groupNum = 1:length(groupNames)
             cellID = cellIDs{cellID_num};
 
             thisCellType = all_data.(groupName).(recName).(cellID).Cell_Type;
-            isSingleUnit = all_data.(groupName).(recName).(cellID).IsSingleUnit;
-            if any(strcmp(cell_types, thisCellType)) && isSingleUnit
+            %isSingleUnit = all_data.(groupName).(recName).(cellID).IsSingleUnit;
+            ISI_violations_percent = all_data.(groupName).(recName).(cellID).ISI_violations_percent;
+            if any(strcmp(cell_types, thisCellType)) && (ISI_violations_percent < 1)
                 groupsVec{end+1,1} = groupName;
                 cellTypesVec{end+1,1} = thisCellType;
                 % CV_vec(end+1,1) = all_data.(groupName).(mouseName).(cellID).ISI_baseline_CV;
@@ -60,68 +61,72 @@ end
 % Fig 1: bar plot of ISI CV
 figure;
 g = gramm('x',groupsVec, 'y',CV_vec, 'color',groupsVec);
-%g.facet_grid([],cellTypesVec, "scale","independent");
+g.facet_grid([],cellTypesVec, "scale","independent");
 g.stat_summary('type','sem', 'geom',{'bar','black_errorbar'}, 'width',1.2, 'setylim',true);
 g.set_names('x','', 'y','ISI CV', 'Color','', 'Column','');
 g.no_legend;
 g.draw();
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV', 'fig');
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV', 'svg');
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV', 'png');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV', 'fig');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV', 'svg');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV', 'png');
 if plot_points
     g.update('x',groupsVec, 'y',CV_vec, "color",groupsVec);
-    g.geom_point();
+    g.geom_jitter();
     g.set_color_options('lightness',40);
     g.set_point_options("markers","^", "base_size",3);
     g.no_legend;
     g.draw;
-    saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_withPoints', 'fig');
-    saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_withPoints', 'svg');
-    saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_withPoints', 'png');
+    % saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_withPoints', 'fig');
+    % saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_withPoints', 'svg');
+    % saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_withPoints', 'png');
 end
 figure; % Probability density
 g = gramm('x',CV_vec, 'color',groupsVec);
+g.facet_grid([],cellTypesVec, "scale","independent");
 g.stat_density('npoints',1000);
-g.set_names('x','ISI CV', 'y','Probability Density', 'color','');
+g.set_names('x','ISI CV', 'y','Probability Density', 'color','', 'column','');
 g.draw;
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_PDF', 'fig');
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_PDF', 'svg');
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_PDF', 'png');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_PDF', 'fig');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_PDF', 'svg');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV_PDF', 'png');
 
 % Fig 2: bar plot of CV2
 figure;
 g = gramm('x',groupsVec, 'y',CV2_vec, 'color',groupsVec);
-%g.facet_grid([],cellTypesVec, "scale","independent");
+g.facet_grid([],cellTypesVec, "scale","independent");
 g.stat_summary('type','sem', 'geom',{'bar','black_errorbar'}, 'width',1.2, 'setylim',true);
 %g.stat_boxplot();
 g.set_names('x','', 'y','ISI CV2', 'Color','', 'Column','');
 g.no_legend;
 g.draw();
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2', 'fig');
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2', 'svg');
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2', 'png');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2', 'fig');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2', 'svg');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2', 'png');
 if plot_points
     g.update('x',groupsVec, 'y',CV2_vec, "color",groupsVec);
-    g.geom_point();
+    g.geom_jitter();
     g.set_color_options('lightness',40);
     g.set_point_options("markers","^", "base_size",3);
     g.no_legend;
     g.draw;
-    saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_withPoints', 'fig');
-    saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_withPoints', 'svg');
-    saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_withPoints', 'png');
+    % saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_withPoints', 'fig');
+    % saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_withPoints', 'svg');
+    % saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_withPoints', 'png');
 end
 figure; % Probability density
 g = gramm('x',CV2_vec, 'color',groupsVec);
+g.facet_grid([],cellTypesVec, "scale","independent");
 g.stat_density('npoints',1000);
-g.set_names('x','ISI CV2', 'y','Probability Density', 'color','');
+g.set_names('x','ISI CV2', 'y','Probability Density', 'color','', 'column','');
 g.draw;
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_PDF', 'fig');
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_PDF', 'svg');
-saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_PDF', 'png');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_PDF', 'fig');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_PDF', 'svg');
+% saveas(gcf, '/home/cresp1el-local/Documents/MATLAB/hd_project_sinda/hd_project_sinda/Figs_and_stats/ISI_CV/ISI_CV2_PDF', 'png');
 
 %% make stats table
-data_table_CVs = table(groupsVec, cellTypesVec, CV_vec, CV2_vec, 'VariableNames',{'Group','CellType','CV','CV2'});
+if nargout > 0
+    data_table_CVs = table(groupsVec, cellTypesVec, CV_vec, CV2_vec, 'VariableNames',{'Group','CellType','CV','CV2'});
+end
 
 end
 

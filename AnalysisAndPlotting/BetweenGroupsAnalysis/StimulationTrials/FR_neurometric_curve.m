@@ -1,4 +1,4 @@
-function stats_out = FR_neurometric_curve(all_data,trialTagsLabels,userGroupNames,groupsPlottingOrder,FR_type,excludeMUA)
+function stats_out = FR_neurometric_curve(all_data,trialTagsLabels,userGroupNames,groupsPlottingOrder,FR_type,minNspikes,excludeMUA)
 % Plot a neurometric curve showing the mean response of each cell type to
 % varying levels of stimulation (e.g., whisker stim intensities) between
 % groups. Also runs stats and returns the results as a struct.
@@ -21,7 +21,7 @@ trialTagsVec = {};
 cellTypesVec = {};
 cellTypesVec2 = {};
 responsivityVec = {};
-layerVec = {};
+% layerVec = {};
 
 for groupNum = 1:length(groupNames)
     groupName = groupNames{groupNum};
@@ -37,9 +37,10 @@ for groupNum = 1:length(groupNames)
 
             IsSingleUnit = all_data.(groupName).(mouseName).(cellID).IsSingleUnit;
             ISI_violations_percent = all_data.(groupName).(mouseName).(cellID).ISI_violations_percent;
+            nspikes = length(all_data.(groupName).(mouseName).(cellID).SpikeTimes_all);
             
             %if (excludeMUA && IsSingleUnit) || ~excludeMUA
-            if (excludeMUA && (ISI_violations_percent <= 1)) || ~excludeMUA
+            if ((excludeMUA && (ISI_violations_percent <= 1)) || ~excludeMUA) && (nspikes >= minNspikes)
                 for trialTagInd = 1:length(trialTagsLabels)
                     
                     if strcmp(FR_type,'binned')
@@ -57,7 +58,7 @@ for groupNum = 1:length(groupNames)
                     trialTagsVec{end+1,1} = trialTagsLabels{trialTagInd};
                     cellTypesVec{end+1,1} = cell_type;
                     groupsVec{end+1,1} = userGroupName;
-                    layerVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).LaminarLabel;
+%                    layerVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).LaminarLabel;
     
                     responsivityNum = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
                     if responsivityNum == 1
@@ -85,7 +86,20 @@ cell_types = unique(cellTypesVec);
 figure();
 
 %% Plotting response curves
-g = gramm('x',trialTagsVec, 'y',FRsVec, 'color',groupsVec, 'column',cellTypesVec2, 'row',layerVec);
+% g = gramm('x',trialTagsVec, 'y',FRsVec, 'color',groupsVec, 'column',cellTypesVec2, 'row',layerVec);
+% g.stat_summary('type','sem', 'geom',{'line','black_errorbar','point'}, 'setylim',true);
+% if strcmp(FR_type,'peak')
+%     g.set_names('x','', 'y','Peak Evoked FR (Hz)', 'Color','', 'Column','', 'Row','');
+% elseif strcmp(FR_type,'fano')
+%     g.set_names('x','', 'y','Fano Factor', 'Color','', 'Column','', 'Row','');
+% else
+%     g.set_names('x','', 'y','Firing Rate (Hz)', 'Color','', 'Column','', 'Row','');
+% end
+% g.set_order_options('x',trialTagsLabels, "color",groupsPlottingOrder, 'row',{'SG','L4','IG'});
+% g.draw();
+
+g = gramm('x',trialTagsVec, 'y',FRsVec, 'color',groupsVec);
+g.facet_grid(responsivityVec, cellTypesVec, "scale","free_y");
 g.stat_summary('type','sem', 'geom',{'line','black_errorbar','point'}, 'setylim',true);
 if strcmp(FR_type,'peak')
     g.set_names('x','', 'y','Peak Evoked FR (Hz)', 'Color','', 'Column','', 'Row','');
@@ -94,7 +108,7 @@ elseif strcmp(FR_type,'fano')
 else
     g.set_names('x','', 'y','Firing Rate (Hz)', 'Color','', 'Column','', 'Row','');
 end
-g.set_order_options('x',trialTagsLabels, "color",groupsPlottingOrder, 'row',{'SG','L4','IG'});
+g.set_order_options('x',trialTagsLabels, "color",groupsPlottingOrder, 'row',{'+','nr','-'});
 g.draw();
 
 %% Generate table of sample sizes
@@ -145,7 +159,11 @@ for uniqueCellTypeInd = 1:length(cell_types)
             [h,p,ci,stats] = ttest2(FRs_group1_trialTag_responsivityLabel_cellType, FRs_group2_trialTag_responsivityLabel_cellType, 'Vartype','unequal');
     
             n_table = table(length(FRs_group1_trialTag_responsivityLabel_cellType),length(FRs_group2_trialTag_responsivityLabel_cellType), 'VariableNames',userGroupNames);
-
+            
+            if trialTagLabelInd == 1
+                fprintf('%s%s: n = %d in %s, n = %d in %s\n',responsivityLabel,cell_types{uniqueCellTypeInd},n_table.(userGroupNames{1}),userGroupNames{1},n_table.(userGroupNames{2}),userGroupNames{2});
+            end
+            
             stats_out.(cell_types{uniqueCellTypeInd}).(responsivityLabel).(trialTagLabel).n = n_table;
             stats_out.(cell_types{uniqueCellTypeInd}).(responsivityLabel).(trialTagLabel).h = h;
             stats_out.(cell_types{uniqueCellTypeInd}).(responsivityLabel).(trialTagLabel).p = p;
