@@ -40,7 +40,7 @@ for groupNum = 1:length(groupNames)
             thisCellType = all_data.(groupName).(recName).(cellID).Cell_Type;
             ISI_violations_percent = all_data.(groupName).(recName).(cellID).ISI_violations_percent;
 
-            if ISI_violations_percent < 1
+            if ISI_violations_percent < 1.5
                 % get spike trains (binarized) with millisecond indices
                 SpikeTrains_ms = all_data.(groupName).(recName).(cellID).SpikeTrains_stim_ms'; % [time x trials] binarized spike data
 

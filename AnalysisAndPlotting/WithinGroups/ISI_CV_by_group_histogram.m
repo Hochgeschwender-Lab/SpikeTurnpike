@@ -5,26 +5,28 @@ function ISI_CV_by_group_histogram(all_data)
 groupNames = fieldnames(all_data);
 
 CV_vec = [];
+CV2_vec = [];
+baselineFR_vec = [];
 cellTypesVec = {};
 responsivityVec = {};
 groupVec = {};
 
 for groupNum = 1:length(groupNames)
     groupName = groupNames{groupNum};
-    mouseNames = fieldnames(all_data.(groupName));
+    recNames = fieldnames(all_data.(groupName));
 
-    for mouseNum = 1:length(mouseNames)
-        mouseName = mouseNames{mouseNum};
-        cellIDs = fieldnames(all_data.(groupName).(mouseName));
+    for recNum = 1:length(recNames)
+        recName = recNames{recNum};
+        cellIDs = fieldnames(all_data.(groupName).(recName));
 
         for cellID_num = 1:length(cellIDs)
             cellID = cellIDs{cellID_num};
 
-            CV_vec(end+1,1) = all_data.(groupName).(mouseName).(cellID).ISI_baseline_CV;
-            cellTypesVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).Cell_Type;
+            CV_vec(end+1,1) = all_data.(groupName).(recName).(cellID).ISI_baseline_CV;
+            cellTypesVec{end+1,1} = all_data.(groupName).(recName).(cellID).Cell_Type;
             groupVec{end+1,1} = groupName;
 
-            responsivityNum = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
+            responsivityNum = all_data.(groupName).(recName).(cellID).StimResponsivity;
             if responsivityNum == 1
                 responsivityVec{end+1,1} = '+';
             elseif responsivityNum == 0
@@ -32,6 +34,16 @@ for groupNum = 1:length(groupNames)
             else
                 responsivityVec{end+1,1} = '-';
             end
+
+            % Calculate CV2 of ISIs, which is more robust to FR
+            % fluctuations
+            ISI_baseline_vec = all_data.(groupName).(recName).(cellID).ISI_baseline_vec;
+            [CV2, ~] = CV2ISI_ISI(ISI_baseline_vec);
+            CV2_vec(end+1,1) = CV2;
+            all_data.(groupName).(recName).(cellID).ISI_CV2_baseline = CV2;
+
+            % Get baseline FR
+            baselineFR_vec(end+1,1) = all_data.(groupName).(recName).(cellID).MeanFR_baseline;
         end
     end
 end
@@ -70,14 +82,31 @@ cell_types = unique(cellTypesVec);
 %     ylabel('Unit Count');
 % end
 
-
+%% Plot CV histogram
 figure;
-
 g = gramm('x',CV_vec, 'color',groupVec, 'row',cellTypesVec);
-g.stat_bin('edges',0:0.1:3, 'geom','overlaid_bar');
+% g.stat_bin('edges',0:0.1:3, 'geom','overlaid_bar');
+g.stat_bin('geom','overlaid_bar');
 g.set_names('x','Coefficient of Variation', 'Color','', 'Row','');
+g.set_title("Baseline ISI CV");
+g.draw;
 
+%% Plot CV2 histogram
+figure;
+g = gramm('x',CV2_vec, 'color',groupVec, 'row',cellTypesVec);
+% g.stat_bin('edges',0:0.1:3, 'geom','overlaid_bar');
+g.stat_bin('geom','overlaid_bar');
+g.set_names('x','Coefficient of Variation 2', 'Color','', 'Row','');
+g.set_title("Baseline ISI CV2");
+g.draw;
+
+%% Plot baseline FR histogram
+figure;
+g = gramm('x',baselineFR_vec, 'color',groupVec, 'row',cellTypesVec);
+% g.stat_bin('edges',0:0.1:3, 'geom','overlaid_bar');
+g.stat_bin('geom','overlaid_bar', 'edges',0:0.05:max(baselineFR_vec));
+g.set_names('x','Baseline Firing Rate (Hz)', 'Color','', 'Row','');
+g.set_title("Baseline FR (Hz)");
 g.draw;
 
 end
-

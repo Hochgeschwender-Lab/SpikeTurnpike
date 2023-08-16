@@ -1,4 +1,4 @@
-function [ccg_out,AB_sim_corrected,t] = JitterCorrectedCCG(spikeTimes1,spikeTimes2,duration_ms,halfbins,nreps,smoothingwin,plot_YorN)
+function [ccg_out,AB_sim_corrected,AB_pt_corrected,t,nSpkPairs] = JitterCorrectedCCG(spikeTimes1,spikeTimes2,duration_ms,halfbins,nreps,smoothingwin,plot_YorN)
 % For two units' spike times, this function computes a jitter-corrected
 % CCG using the interval jitter method (Platkiewicz, Stark, & Amarasingham,
 % 2017, Neural Comput.) and detects/classifies whether there is a
@@ -55,13 +55,15 @@ FRs = [length(spikeTimes1)/(duration_ms/1000) length(spikeTimes2)/(duration_ms/1
 norm = geomean(FRs);
 
 % compute raw CCG
-[ccg_raw, t, ~] = CCG(T, G, 1, halfbins, 1000, [1 2], 'count');
+[ccg_raw, t, Pairs] = CCG(T, G, 1, halfbins, 1000, [1 2], 'count');
 t = t';
 % zero_lag_ind = find(t==0);
 ccg_raw = ccg_raw(:,1,2) / norm; % only keep the CCG, not ACGs
 if ~isempty(smoothingwin)
     ccg_raw = smoothdata(ccg_raw,1,"movmean",smoothingwin);
 end
+
+nSpkPairs = size(Pairs,1);
 
 %% compute mean of nreps jittered CCGs
 % first, jitter both spike trains as sparse matrices

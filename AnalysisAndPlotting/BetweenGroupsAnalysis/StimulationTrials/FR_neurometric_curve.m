@@ -40,7 +40,7 @@ for groupNum = 1:length(groupNames)
             nspikes = length(all_data.(groupName).(mouseName).(cellID).SpikeTimes_all);
             
             %if (excludeMUA && IsSingleUnit) || ~excludeMUA
-            if ((excludeMUA && (ISI_violations_percent <= 1)) || ~excludeMUA) && (nspikes >= minNspikes)
+            if ((excludeMUA && (ISI_violations_percent <= 1.5)) || ~excludeMUA) && (nspikes >= minNspikes)
                 for trialTagInd = 1:length(trialTagsLabels)
                     
                     if strcmp(FR_type,'binned')
@@ -86,30 +86,32 @@ cell_types = unique(cellTypesVec);
 figure();
 
 %% Plotting response curves
-% g = gramm('x',trialTagsVec, 'y',FRsVec, 'color',groupsVec, 'column',cellTypesVec2, 'row',layerVec);
-% g.stat_summary('type','sem', 'geom',{'line','black_errorbar','point'}, 'setylim',true);
-% if strcmp(FR_type,'peak')
-%     g.set_names('x','', 'y','Peak Evoked FR (Hz)', 'Color','', 'Column','', 'Row','');
-% elseif strcmp(FR_type,'fano')
-%     g.set_names('x','', 'y','Fano Factor', 'Color','', 'Column','', 'Row','');
-% else
-%     g.set_names('x','', 'y','Firing Rate (Hz)', 'Color','', 'Column','', 'Row','');
-% end
-% g.set_order_options('x',trialTagsLabels, "color",groupsPlottingOrder, 'row',{'SG','L4','IG'});
-% g.draw();
-
-g = gramm('x',trialTagsVec, 'y',FRsVec, 'color',groupsVec);
-g.facet_grid(responsivityVec, cellTypesVec, "scale","free_y");
-g.stat_summary('type','sem', 'geom',{'line','black_errorbar','point'}, 'setylim',true);
-if strcmp(FR_type,'peak')
-    g.set_names('x','', 'y','Peak Evoked FR (Hz)', 'Color','', 'Column','', 'Row','');
-elseif strcmp(FR_type,'fano')
-    g.set_names('x','', 'y','Fano Factor', 'Color','', 'Column','', 'Row','');
+if length(trialTagsLabels) > 1
+    g = gramm('x',trialTagsVec, 'y',FRsVec, 'color',groupsVec);
+    g.facet_grid(responsivityVec, cellTypesVec, "scale","free_y");
+    g.stat_summary('type','sem', 'geom',{'line','black_errorbar','point'}, 'setylim',true);
+    if strcmp(FR_type,'peak')
+        g.set_names('x','', 'y','Peak Evoked FR (Hz)', 'Color','', 'Column','', 'Row','');
+    elseif strcmp(FR_type,'fano')
+        g.set_names('x','', 'y','Fano Factor', 'Color','', 'Column','', 'Row','');
+    else
+        g.set_names('x','', 'y','Firing Rate (Hz)', 'Color','', 'Column','', 'Row','');
+    end
+    g.set_order_options('x',trialTagsLabels, "color",groupsPlottingOrder, 'row',{'+','nr','-'});
+    g.draw();
 else
-    g.set_names('x','', 'y','Firing Rate (Hz)', 'Color','', 'Column','', 'Row','');
+    g = gramm('x',groupsVec, 'y',FRsVec, 'color',groupsVec);
+    g.stat_summary('type','sem', 'geom',{'bar','black_errorbar'}, 'setylim',true);
+    if strcmp(FR_type,'peak')
+        g.set_names('x','', 'y','Peak Evoked FR (Hz)', 'Color','');
+    elseif strcmp(FR_type,'fano')
+        g.set_names('x','', 'y','Fano Factor', 'Color','');
+    else
+        g.set_names('x','', 'y','Firing Rate (Hz)', 'Color','');
+    end
+    g.set_order_options('x',groupsPlottingOrder, "color",groupsPlottingOrder);
+    g.draw();
 end
-g.set_order_options('x',trialTagsLabels, "color",groupsPlottingOrder, 'row',{'+','nr','-'});
-g.draw();
 
 %% Generate table of sample sizes
 % for ii = 1:length(unique(cellTypesVec)) % rows = cell types

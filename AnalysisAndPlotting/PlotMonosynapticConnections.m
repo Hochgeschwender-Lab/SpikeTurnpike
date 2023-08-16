@@ -20,11 +20,11 @@ for cellTypePairNum = 1:length(cellTypePairs)
         inds_I = ismember(MonoConnectionsTable.group,groups{groupNum}) & ismember(MonoConnectionsTable.CellTypes,cellTypePairs{cellTypePairNum}) & ismember(MonoConnectionsTable.EorI,'I');
         CCGsToPlot_I = MonoConnCCGs(:,inds_I);
         
-        [~, maxInds] = max(CCGsToPlot_E(t>0 & t<=10, :),[],1);
+        [~, maxInds] = max(CCGsToPlot_E(t>0 & t<=5, :),[],1);
         [~, I_sort] = sort(maxInds);
         CCGsToPlot_E = CCGsToPlot_E(:,I_sort);
 
-        [~, minInds] = min(CCGsToPlot_I(t>0 & t<=10, :),[],1);
+        [~, minInds] = min(CCGsToPlot_I(t>0 & t<=5, :),[],1);
         [~, I_sort] = sort(minInds);
         CCGsToPlot_I = CCGsToPlot_I(:,I_sort);
         
@@ -47,7 +47,7 @@ for cellTypePairNum = 1:length(cellTypePairs)
         ylabel('');
         set(gca,'YTickLabel',[]);
 
-        xline([-10 10],'r');
+        xline([-5 5],'r');
         xline(0);
     end
 

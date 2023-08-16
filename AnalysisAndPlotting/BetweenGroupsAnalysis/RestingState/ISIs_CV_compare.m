@@ -30,7 +30,7 @@ for groupNum = 1:length(groupNames)
             thisCellType = all_data.(groupName).(recName).(cellID).Cell_Type;
             %isSingleUnit = all_data.(groupName).(recName).(cellID).IsSingleUnit;
             ISI_violations_percent = all_data.(groupName).(recName).(cellID).ISI_violations_percent;
-            if any(strcmp(cell_types, thisCellType)) && (ISI_violations_percent < 1)
+            if any(strcmp(cell_types, thisCellType)) && (ISI_violations_percent < 1.5)
                 groupsVec{end+1,1} = groupName;
                 cellTypesVec{end+1,1} = thisCellType;
                 % CV_vec(end+1,1) = all_data.(groupName).(mouseName).(cellID).ISI_baseline_CV;

@@ -24,14 +24,16 @@ end
 
 %% Plotting
 figure;
-g = gramm('x',EorI_vec, 'y',dcw_vec, 'color',groups_vec, 'column',cellTypePairs_vec);
-g.stat_summary('type','sem', 'geom',{'bar','black_errorbar'}, 'setylim',true);
+g = gramm('x',EorI_vec, 'y',dcw_vec, 'color',groups_vec);
+g.facet_grid([], cellTypePairs_vec, 'scale','independent')
+%g.fig(MonoConnectionsTable.layers);
+g.stat_summary('type','bootci', 'geom',{'bar','black_errorbar'}, 'setylim',true);
 g.set_names('x','', 'y','Directed Connection Weight', 'color','', 'column','')
 g.no_legend;
 g.draw;
 
 g.update('x',EorI_vec, 'y',dcw_vec, 'color',groups_vec, 'column',cellTypePairs_vec);
-g.geom_point();
+g.geom_jitter();
 g.set_color_options('lightness',40);
 g.set_point_options('base_size',2.5);
 % g.no_legend;
