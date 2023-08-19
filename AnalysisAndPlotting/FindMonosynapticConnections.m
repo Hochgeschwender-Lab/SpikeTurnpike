@@ -96,24 +96,33 @@ for groupNum = 1:length(groupNames)
                         
                         nSpkPairs_vec(end+1,1) = nSpkPairs;
 
-                        %% Classify significant A->B connection if it exists
-                        [~,I_max] = max(abs(ccg_i(t>-13 & t<13))); % I_max = 13 is where t = 0
-                        t_max = I_max - 13;
-
-                        % logical classification schemes
-                        if (t_max==0) && (ccg_i(t==t_max) > AB_pt(t==t_max,2)) % significantly synchronous
+                        %% logical classification schemes
+                        % first, check for significant synchrony using
+                        % two-sided peak
+                        [~,I_M] = max(abs(ccg_i(t>=-12 & t<=12))); % I_M = 13 is where t = 0
+                        t_M = I_M - 13;
+                        if (t_M==0) && (ccg_i(t==t_M) > AB_pt(t==t_M,2)) % significantly synchronous
                             sig = 1;
                             EorI = 'S';
-                        elseif (t_max >= 1) && (t_max <= 5) && (ccg_i(t==t_max) > AB_sim(t==t_max,2)) % excitatory monosynaptic
-                            sig = 1;
-                            EorI = 'E';
-                        elseif (t_max >= 1) && (t_max <= 5) && (ccg_i(t==t_max) < AB_sim(t==t_max,1)) % inhibitory monosynaptic
-                            sig = 1;
-                            EorI = 'I';
-                        else % not significant ("NS")
-                            sig = 0;
-                            EorI = 'NS';
+                        else
+                            % use one-side peak to assess monosynaptic
+                            % connectivity so that if A and B are
+                            % bidirectionally connected and the B->A peak
+                            % is stronger, A->B will still be significant
+                            [~,I_m] = max(abs(ccg_i(t>=0 & t<=12))); % I_m = 1 is where t = 0
+                            t_m = I_m - 1;
+                            if (t_m >= 1) && (t_m <= 5) && (ccg_i(t==t_m) > AB_sim(t==t_m,2)) % excitatory monosynaptic
+                                sig = 1;
+                                EorI = 'E';
+                            elseif (t_m >= 1) && (t_m <= 5) && (ccg_i(t==t_m) < AB_sim(t==t_m,1)) % inhibitory monosynaptic
+                                sig = 1;
+                                EorI = 'I';
+                            else % not significant ("NS")
+                                sig = 0;
+                                EorI = 'NS';
+                            end
                         end
+                        
                         sig_vec(end+1,1) = sig;
                         EorI_vec{end+1,1} = EorI;
 

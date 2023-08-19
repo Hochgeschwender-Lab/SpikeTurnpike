@@ -39,7 +39,8 @@ peaks_vec = max(abs(MonoConnCCGs(t>0 & t<=5, :)),[],1);
 % overlaid mean CCGs
 figure;
 g = gramm('x',t, 'y',MonoConnCCGs', 'color',MonoConnectionsTable.group);
-g.facet_grid(MonoConnectionsTable.EorI, MonoConnectionsTable.CellTypes, 'scale','independent');
+g.facet_grid(MonoConnectionsTable.layers, MonoConnectionsTable.CellTypes, 'scale','independent');
+g.fig(MonoConnectionsTable.EorI);
 g.stat_summary('type','sem', 'setylim',true);
 %g.geom_line;
 g.draw;
@@ -48,7 +49,8 @@ g.draw;
 % all CCGs
 figure;
 g = gramm('x',t, 'y',MonoConnCCGs', 'color',MonoConnectionsTable.group);
-g.facet_grid(MonoConnectionsTable.EorI, MonoConnectionsTable.CellTypes, 'scale','independent');
+g.facet_grid(MonoConnectionsTable.layers, MonoConnectionsTable.CellTypes, 'scale','independent');
+g.fig(MonoConnectionsTable.EorI);
 %g.stat_summary('type','sem', 'setylim',true);
 g.geom_line;
 g.draw;
@@ -74,10 +76,10 @@ g.draw;
 
 % bar plot of excess synchrony for significantly synchronous pairs
 figure;
-g = gramm('x',MonoConnectionsTable.group, 'y',MonoConnectionsTable.ExcessSynchrony, 'color',MonoConnectionsTable.group, 'subset',strcmp(MonoConnectionsTable.EorI,'S'));
+g = gramm('x',MonoConnectionsTable.layers, 'y',MonoConnectionsTable.ExcessSynchrony, 'color',MonoConnectionsTable.group, 'subset',strcmp(MonoConnectionsTable.EorI,'S'));
 g.facet_grid([], MonoConnectionsTable.CellTypes, 'scale','independent');
-%g.stat_summary('type','sem', 'geom',{'bar','black_errorbar'}, 'setylim',true);
-g.geom_jitter();
+g.stat_summary('type','sem', 'geom',{'bar','black_errorbar'}, 'setylim',true);
+%g.geom_jitter();
 g.set_names('x','', 'y','Excess Synchrony', 'color','', 'column','')
 g.no_legend;
 g.set_title('Excess Synchrony: Significant Synchronous Pairs');
@@ -95,7 +97,7 @@ g.draw;
 figure;
 g = gramm('x',MonoConnectionsTable.layers, 'y',MonoConnectionsTable.ExcessSynchrony, 'color',MonoConnectionsTable.group);
 g.facet_grid([], MonoConnectionsTable.CellTypes, 'scale','independent');
-g.stat_summary('type','bootci', 'geom',{'bar','black_errorbar'}, 'setylim',true);
+g.stat_summary('type','sem', 'geom',{'bar','black_errorbar'}, 'setylim',true);
 % g.geom_jitter();
 g.set_names('x','', 'y','Excess Synchrony', 'color','', 'column','')
 g.no_legend;
