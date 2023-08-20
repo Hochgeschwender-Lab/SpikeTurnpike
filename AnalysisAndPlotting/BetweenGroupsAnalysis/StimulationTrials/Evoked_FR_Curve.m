@@ -1,4 +1,4 @@
-function stats_out = Evoked_FR_Curve(all_data,trialTagsLabels,userGroupNames,groupsPlottingOrder)
+function stats_out = Evoked_FR_Curve(all_data,trialTagsLabels,userGroupNames,groupsPlottingOrder,FR_type,minNspikes,excludeMUA)
 %EVOKED_FR_CURVE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -21,6 +21,7 @@ groupsVec = {};
 trialTagsVec = {}; % numeric trial tag, not label
 cellTypesVec = {};
 responsivityVec = {};
+cellTypesVec2 = {};
 
 for groupNum = 1:length(groupNames)
     groupName = groupNames{groupNum};
@@ -33,38 +34,80 @@ for groupNum = 1:length(groupNames)
 
         for cellID_num = 1:length(cellIDs)
             cellID = cellIDs{cellID_num};
-            
-            if length(trialTagsLabels) > 1
-                for trialTagInd = 1:length(trialTagsLabels)
-                    FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).MeanFR_stim(trialTagInd,1);
-                    trialTagsVec{end+1,1} = trialTagsLabels{trialTagInd};
-                    cellTypesVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).Cell_Type;
-                    groupsVec{end+1,1} = userGroupName;
+            ISI_violations_percent = all_data.(groupName).(mouseName).(cellID).ISI_violations_percent;
+            nspikes = length(all_data.(groupName).(mouseName).(cellID).SpikeTimes_all);
 
+            if ((excludeMUA && (ISI_violations_percent <= 1.5)) || ~excludeMUA) && (nspikes >= minNspikes)
+                if length(trialTagsLabels) > 1
+                    for trialTagInd = 1:length(trialTagsLabels)
+                        if strcmp(FR_type,'binned')
+                            FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).MeanFR_stim(trialTagInd,1);
+                        elseif strcmp(FR_type,'inst')
+                            FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).MeanFR_inst_stim(trialTagInd,1);
+                        elseif strcmp(FR_type,'peak')
+                            FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).PeakEvokedFR(trialTagInd,1);
+                        else % FR_type is 'fano'
+                            FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).FanoFactor_stim(trialTagInd,1);
+                        end
+                        trialTagsVec{end+1,1} = trialTagsLabels{trialTagInd};
+                        cell_type = all_data.(groupName).(mouseName).(cellID).Cell_Type;
+                        cellTypesVec{end+1,1} = cell_type;
+                        groupsVec{end+1,1} = userGroupName;
+    
+                        responsivityNum = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
+                        if responsivityNum == 1
+                            responsivityLabel = '+';
+                            responsivityVec{end+1,1} = 'Positive';
+                        elseif responsivityNum == 0
+                            responsivityLabel = 'nr';
+                            responsivityVec{end+1,1} = 'NR';
+                        else
+                            responsivityLabel = '-';
+                            responsivityVec{end+1,1} = 'Negative';
+                        end
+
+                        cellTypesVec2{end+1,1} = strcat(responsivityLabel,cell_type);
+                        
+                    end
+                else
+                    FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).MeanFR_baseline;
+                    trialTagsVec{end+1,1} = 'Baseline';
+                    cell_type = all_data.(groupName).(mouseName).(cellID).Cell_Type;
+                    cellTypesVec{end+1,1} = cell_type;
+                    groupsVec{end+1,1} = userGroupName;
                     responsivityNum = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
                     if responsivityNum == 1
-                        responsivityVec{end+1,1} = '+';
+                        responsivityLabel = '+';
+                        responsivityVec{end+1,1} = 'Positive';
                     elseif responsivityNum == 0
+                        responsivityLabel = 'nr';
                         responsivityVec{end+1,1} = 'NR';
                     else
-                        responsivityVec{end+1,1} = '-';
+                        responsivityLabel = '-';
+                        responsivityVec{end+1,1} = 'Negative';
                     end
+                    cellTypesVec2{end+1,1} = strcat(responsivityLabel,cell_type);
                     
+                    FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).MeanFR_stim;
+                    trialTagsVec{end+1,1} = 'Evoked';
+                    cell_type = all_data.(groupName).(mouseName).(cellID).Cell_Type;
+                    cellTypesVec{end+1,1} = cell_type;
+                    groupsVec{end+1,1} = userGroupName;
+                    responsivityVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
+                    responsivityNum = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
+                    if responsivityNum == 1
+                        responsivityLabel = '+';
+                        responsivityVec{end+1,1} = 'Positive';
+                    elseif responsivityNum == 0
+                        responsivityLabel = 'nr';
+                        responsivityVec{end+1,1} = 'NR';
+                    else
+                        responsivityLabel = '-';
+                        responsivityVec{end+1,1} = 'Negative';
+                    end
+                    cellTypesVec2{end+1,1} = strcat(responsivityLabel,cell_type);
                 end
-            else
-                FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).MeanFR_baseline;
-                trialTagsVec{end+1,1} = 'Baseline';
-                cellTypesVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).Cell_Type;
-                groupsVec{end+1,1} = userGroupName;
-                %responsivityVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
-                
-                FRsVec(end+1,1) = all_data.(groupName).(mouseName).(cellID).MeanFR_stim;
-                trialTagsVec{end+1,1} = 'Evoked';
-                cellTypesVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).Cell_Type;
-                groupsVec{end+1,1} = userGroupName;
-                %responsivityVec{end+1,1} = all_data.(groupName).(mouseName).(cellID).StimResponsivity;
             end
-
         end
     end
 end
@@ -75,12 +118,19 @@ figure();
 
 if length(trialTagsLabels) == 1 % bar plot + stats for invariant stimulation
     g = gramm('x',groupsVec, 'y',FRsVec, 'color',groupsVec);
-    g.facet_grid(cellTypesVec, trialTagsVec, 'scale','free_y');
+    g.facet_grid(cellTypesVec2, trialTagsVec, 'scale','free_y');
     g.stat_summary('type','sem', 'geom',{'bar','black_errorbar'}, 'setylim',true);
     g.set_names('x','', 'y','Firing Rate (Hz)', 'Color','', 'Column','', 'Row','');
     g.no_legend;
     g.set_order_options('x',groupsPlottingOrder, 'color',groupsPlottingOrder);
     g.draw();
+
+    g.update('x',groupsVec, 'y',FRsVec, 'color',groupsVec);
+    g.geom_jitter();
+    g.set_color_options('lightness',40);
+    g.set_point_options("markers","^", "base_size",3);
+    g.no_legend;
+    g.draw;
     
     for uniqueCellTypeInd = 1:length(cell_types)
         cellTypeInds = find(strcmp(cellTypesVec,cell_types{uniqueCellTypeInd}));

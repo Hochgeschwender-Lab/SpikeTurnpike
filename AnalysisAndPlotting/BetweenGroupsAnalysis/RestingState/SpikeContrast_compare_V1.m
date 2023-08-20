@@ -1,4 +1,4 @@
-function [data_table_syn, s_curves, s_bins] = SpikeContrast_compare(all_data, cell_types, plot_points)
+function [data_table_syn, s_curves, s_bins] = SpikeContrast_compare_V1(all_data, cell_types, binSizes, plot_points)
 % Per cell type, calculates synchrony via the Spike-Contrast method to
 % produce two plots: a bar plot of synchrony (S) between groups as well as
 % the mean synchrony curve per group.
@@ -7,8 +7,13 @@ function [data_table_syn, s_curves, s_bins] = SpikeContrast_compare(all_data, ce
 % - all_data
 % - cell_types: cell array of cell types to plot. e.g., {'MSN','TAN'}.
 %       Unlike in other functions, the cell types are pooled for analysis.
+% - binSizes: [min max] bin sizes, i.e. timescales, for synchrony
+%       calculation. WARNING: max bin size should not exceed half of your
+%       recording or trial length, or the results will not make sense.
 % - plot_points: 0 to only plot bars (+/- SEM), 1 to plot points on top.
 %       Useful to show the distribution.
+% - trials_YorN: 0 to use all spike times at once, 1 to split up by types
+%       of trials.
 
 groupNames = fieldnames(all_data);
 
@@ -36,11 +41,13 @@ for groupNum = 1:length(groupNames)
             cellID = cellIDs{cellID_num};
 
             thisCellType = all_data.(groupName).(recName).(cellID).Cell_Type;
-            isSingleUnit = all_data.(groupName).(recName).(cellID).IsSingleUnit;
+            %isSingleUnit = all_data.(groupName).(recName).(cellID).IsSingleUnit;
+            ISI_violations_percent = all_data.(groupName).(recName).(cellID).ISI_violations_percent;
 
-            if any(strcmp(cell_types, thisCellType)) && isSingleUnit %&& (all_data.(groupName).(recName).(cellID).MeanFR_total < 5)
+            if any(strcmp(cell_types, thisCellType)) && (ISI_violations_percent <= 1) %&& (all_data.(groupName).(recName).(cellID).MeanFR_total < 5)
                 spikeTimes = all_data.(groupName).(recName).(cellID).SpikeTimes_all'; % transposed so it's a row vector
                 spikeTimes = spikeTimes / 30000; % convert from samples to seconds
+
                 n_spikes = length(spikeTimes);
 
                 if isempty(allSpikeTrains) || (n_spikes == length(allSpikeTrains))
@@ -57,7 +64,7 @@ for groupNum = 1:length(groupNames)
         end
 
         % Spike-Contrast implementation
-        [S,PREF] = SpikeContrast(allSpikeTrains, recLength, 0.001, 2); % S is the synchrony index, 0 <= S <= 1
+        [S,PREF] = SpikeContrast(allSpikeTrains, recLength, binSizes(1), binSizes(2)); % S is the synchrony index, 0 <= S <= 1
         s_curve = PREF.s;
         s_bins = PREF.bins;
 

@@ -1,0 +1,3 @@
+[submodule "external/circstat-matlab"]
+	path = external/circstat-matlab
+	url = https://github.com/circstat/circstat-matlab.git

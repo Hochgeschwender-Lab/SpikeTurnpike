@@ -56,10 +56,11 @@ for groupNum = 1:length(groupNames)
 
         for cellID_num = 1:length(cellIDs)
             cellID = cellIDs{cellID_num};
-            isSingleUnit = all_data.(groupName).(mouseName).(cellID).IsSingleUnit;
+            %isSingleUnit = all_data.(groupName).(mouseName).(cellID).IsSingleUnit;
+            ISI_violations_percent = all_data.(groupName).(mouseName).(cellID).ISI_violations_percent;
             thisCellType = all_data.(groupName).(mouseName).(cellID).Cell_Type;
 
-            if isSingleUnit && any(strcmp(cell_types, thisCellType))
+            if (ISI_violations_percent <= 1.5) && any(strcmp(cell_types, thisCellType))
                 % get x, y, z, and c data
                 xdata(end+1,1) = all_data.(groupName).(mouseName).(cellID).(vars{1});
                 ydata(end+1,1) = all_data.(groupName).(mouseName).(cellID).(vars{2});
