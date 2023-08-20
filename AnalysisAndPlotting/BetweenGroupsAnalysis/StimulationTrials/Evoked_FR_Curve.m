@@ -2,6 +2,18 @@ function stats_out = Evoked_FR_Curve(all_data,trialTagsLabels,userGroupNames,gro
 %EVOKED_FR_CURVE Summary of this function goes here
 %   Detailed explanation goes here
 
+% Summary
+%   This function plots the evoked firing rate (FR) curve and performs statistical analyses for given neural data. Depending on the trial tags provided, it can either generate bar plots for invariant stimulation or response curves for varying stimulation. Statistical tests, including two-sample t-tests and repeated measures ANOVA, are applied to the data.
+
+% Input Parameters
+%   all_data: A structured array containing the detailed information for different groups, mice, and cell IDs. The structure includes fields like MeanFR_stim, MeanFR_baseline, Cell_Type, and StimResponsivity.
+%   trialTagsLabels: A cell array containing the labels for the trial tags. It defines the stimulation conditions to be plotted and analyzed.
+%   userGroupNames: A cell array containing the names of user-defined groups to be used in the plot.
+%   groupsPlottingOrder: A cell array defining the order in which the groups should be plotted.
+
+% Output
+% stats_out: A structured array containing the statistical analysis results. It includes the p-values, confidence intervals, t-statistic, and degrees of freedom for the conducted tests.
+
 groupNames = fieldnames(all_data);
 
 FRsVec = []; % vector with row for each unit
